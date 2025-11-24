@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 export interface AdminUser {
   id: number;
   username: string;
+  role?: string;
   created_at?: string;
   created_by?: string;
 }
@@ -18,8 +19,8 @@ export class AdminService {
     return this.http.get<AdminUser[]>(`${this.api}/admin/users`);
   }
 
-  addAdmin(username: string, password: string): Observable<any> {
-    return this.http.post(`${this.api}/admin/users`, { username, password });
+  addAdmin(username: string, password: string, role: string = 'admin',loggedinUser:string): Observable<any> {
+    return this.http.post(`${this.api}/admin/users`, { username, password, role,loggedinUser });
   }
 
   deleteAdmin(id: number): Observable<any> {

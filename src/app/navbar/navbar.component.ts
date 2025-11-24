@@ -19,7 +19,8 @@ export class NavbarComponent {
   // Flags come from localStorage
   isAdmin = false;
   isMasterAdmin = false;
-  adminUsername = '';
+  adminRole = '';
+  username = '';
 
   constructor(private router: Router) {}
 
@@ -31,10 +32,10 @@ export class NavbarComponent {
 
   private refreshAuthState() {
     this.isAdmin = localStorage.getItem('is_admin') === 'true';
-    const username = localStorage.getItem('admin_username') || '';
-    this.adminUsername = username;
-    // Treat 'admin' user as master admin by default; adjust as needed
-    this.isMasterAdmin = username === 'admin';
+    const role = localStorage.getItem('admin_role') || '';
+    this.adminRole = role;
+    this.username = localStorage.getItem('username') || '';
+    this.isMasterAdmin = role === 'master';
   }
 
   closeOnNavigate() {
@@ -46,8 +47,9 @@ export class NavbarComponent {
   logout() {
     // Clear SPA auth state
     localStorage.removeItem('is_admin');
-    localStorage.removeItem('admin_username');
+    localStorage.removeItem('admin_role');
     localStorage.removeItem('admin_id');
+     localStorage.removeItem('admin_username');
     this.refreshAuthState();
     // Close mobile menu if open
     if (this.mobileOpen) this.mobileOpen = false;

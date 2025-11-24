@@ -73,6 +73,7 @@ const createAdminTable = `CREATE TABLE IF NOT EXISTS admin_users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(100) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL DEFAULT 'admin',
   created_by VARCHAR(100) DEFAULT NULL,
   created_at DATETIME DEFAULT NULL
 )`;
@@ -104,6 +105,11 @@ db.query(createAdminTable, (err) => {
       'ALTER TABLE admin_users ADD COLUMN created_at DATETIME DEFAULT NULL',
       "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE table_schema = DATABASE() AND table_name = 'admin_users' AND column_name = 'created_at'",
     );
+    // Check role
+    ensureColumn(
+      "ALTER TABLE admin_users ADD COLUMN role VARCHAR(50) NOT NULL DEFAULT 'admin'",
+      "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE table_schema = DATABASE() AND table_name = 'admin_users' AND column_name = 'role'",
+    );
   }
 });
 
@@ -113,21 +119,23 @@ const seedAdmin = async () => {
     if (err) return console.error('Error checking admin_users:', err);
     const cnt = results[0].cnt;
     if (cnt === 0) {
-      // default username: admin, password: admin123 (bcrypt hashed)
-      import('bcryptjs')
-        .then((mod) => {
-          const bcrypt = mod && mod.default ? mod.default : mod;
-          const hash = bcrypt.hashSync('admin123', 10);
-          db.query(
-            'INSERT INTO admin_users (username, password) VALUES (?, ?)',
-            ['admin', hash],
-            (e) => {
-              if (e) console.error('Error seeding admin user:', e);
-              else console.log('Seeded default admin user (username: admin, password: admin123)');
-            },
-          );
-        })
-        .catch((e) => console.error('Error importing bcryptjs for seeding:', e));
+        // default username: must be 8 alphanumeric characters to match new rules
+        import('bcryptjs')
+          .then((mod) => {
+            const bcrypt = mod && mod.default ? mod.default : mod;
+            // choose an 8-character master username so manage-admins is accessible
+            const defaultUsername = 'admin001';
+            const hash = bcrypt.hashSync('admin123', 10);
+            db.query(
+              "INSERT INTO admin_users (username, password, role) VALUES (?, ?, 'master')",
+              [defaultUsername, hash],
+              (e) => {
+                if (e) console.error('Error seeding admin user:', e);
+                else console.log(`Seeded default admin user (username: ${defaultUsername}, password: admin123)`);
+              },
+            );
+          })
+          .catch((e) => console.error('Error importing bcryptjs for seeding:', e));
     }
   });
 };
@@ -176,7 +184,7 @@ app.post('/api/admin/login', (req, res) => {
   if (!username || !password)
     return res.status(400).json({ error: 'Username and password required' });
   db.query(
-    'SELECT id, username, password FROM admin_users WHERE username = ?',
+    'SELECT id, username, password, role FROM admin_users WHERE username = ?',
     [username],
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -189,7 +197,7 @@ app.post('/api/admin/login', (req, res) => {
           const ok = bcrypt.compareSync(password, user.password);
           if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
           // In a real app you'd create a session or JWT; here we return basic user info
-          res.json({ id: user.id, username: user.username });
+          res.json({ id: user.id, username: user.username, role: user.role });
         })
         .catch((e) => res.status(500).json({ error: e.message }));
     },
@@ -222,7 +230,7 @@ app.get('/api/events/past', (req, res) => {
 // Admin users: list
 app.get('/api/admin/users', (req, res) => {
   db.query(
-    'SELECT id, username, created_at, created_by FROM admin_users ORDER BY created_at DESC',
+    'SELECT id, username, role, created_at, created_by FROM admin_users ORDER BY created_at DESC',
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json(results);
@@ -232,9 +240,13 @@ app.get('/api/admin/users', (req, res) => {
 
 // Admin users: add
 app.post('/api/admin/users', (req, res) => {
-  const { username, password } = req.body;
+    const { username, password, role,loggedinUser } = req.body;
+  // username must be exactly 8 alphanumeric characters
+  const usernamePattern = /^[A-Za-z0-9]{8}$/;
   if (!username || !password)
     return res.status(400).json({ error: 'Username and password required' });
+  if (!usernamePattern.test(username))
+    return res.status(400).json({ error: 'Username must be exactly 8 alphanumeric characters' });
   // Check exists
   db.query('SELECT id FROM admin_users WHERE username = ?', [username], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -243,10 +255,11 @@ app.post('/api/admin/users', (req, res) => {
       .then((mod) => {
         const bcrypt = mod && mod.default ? mod.default : mod;
         const hash = bcrypt.hashSync(password, 10);
-        const created_by = req.body.created_by || 'admin';
+        const created_by = loggedinUser || 'master';
+        const newRole = role || 'admin';
         db.query(
-          'INSERT INTO admin_users (username, password, created_by, created_at) VALUES (?, ?, ?, NOW())',
-          [username, hash, created_by],
+          'INSERT INTO admin_users (username, password, role, created_by, created_at) VALUES (?, ?, ?, ?, NOW())',
+          [username, hash, newRole, created_by],
           (e, result) => {
             if (e) return res.status(500).json({ error: e.message });
             res.json({ id: result.insertId });

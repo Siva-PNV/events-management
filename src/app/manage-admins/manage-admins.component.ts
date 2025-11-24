@@ -60,8 +60,9 @@ export class ManageAdminsComponent implements OnInit {
   }
 
   addAdmin() {
-    if (!this.username || this.username.length < 3) {
-      this.message = 'Username must be at least 3 characters.';
+    const usernamePattern = /^[A-Za-z0-9]{8}$/;
+    if (!this.username || !usernamePattern.test(this.username)) {
+      this.message = 'Username must be exactly 8 alphanumeric characters.';
       this.messageType = 'error';
       return;
     }
@@ -75,7 +76,8 @@ export class ManageAdminsComponent implements OnInit {
       this.messageType = 'error';
       return;
     }
-    this.adminService.addAdmin(this.username, this.password).subscribe({
+    const loggedinUser = localStorage.getItem('username')|| '';
+    this.adminService.addAdmin(this.username, this.password, 'admin',loggedinUser).subscribe({
       next: () => {
         this.messageType = 'success';
         this.message = 'Admin user added successfully!';

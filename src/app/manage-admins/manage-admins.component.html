@@ -27,7 +27,7 @@
                             </span>
             <input [(ngModel)]="username" name="username" required 
              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition"
-placeholder="Enter new username (min. 3 characters)"            >
+placeholder="Enter new username (exactly 8 alphanumeric chars)"            >
           </div>
           </div>
 
@@ -73,7 +73,7 @@ class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-no
         <div *ngIf="admins.length > 0" [ngClass]="admins.length > 3 ? 'space-y-4 max-h-64 overflow-y-auto pr-2' : 'space-y-4'">
           <div *ngFor="let a of admins" class="border border-gray-200 rounded-xl p-5 bg-gray-50 shadow-sm flex items-center justify-between">
             <div>
-              <p class="font-semibold text-indigo-700 text-lg flex items-center gap-2"><svg xmlns='http://www.w3.org/2000/svg' class='h-5 w-5 text-indigo-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z'/></svg>{{ a.username }}</p>
+              <p class="font-semibold text-indigo-700 text-lg flex items-center gap-2"><svg xmlns='http://www.w3.org/2000/svg' class='h-5 w-5 text-indigo-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z'/></svg>{{ a.username }} <span class="ml-2 text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">{{ a.role || 'admin' }}</span></p>
               <p class="text-sm text-gray-600">Created: {{ a.created_at ? (a.created_at | date:'MMM d, yyyy HH:mm') : 'Unknown' }}</p>
               <p class="text-sm text-gray-600">By: {{ a.created_by || 'System' }}</p>
             </div>

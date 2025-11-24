@@ -146,7 +146,7 @@
           Logout
         </button>
         <span *ngIf="isAdmin" class="hidden md:inline-flex items-center ml-2 text-sm text-gray-600"
-          >Signed in as <strong class="ml-2 text-indigo-700">{{ adminUsername }}</strong></span
+          >Signed in as <strong class="ml-2 text-indigo-700">{{ username | uppercase}}</strong></span
         >
         <ng-template #loginLink>
           <!-- <a routerLink="/login" (click)="closeOnNavigate()" routerLinkActive="text-indigo-700 bg-indigo-100 font-semibold" class="inline-flex items-center gap-2 text-gray-700 hover:bg-indigo-100 px-6 py-3 text-sm md:text-base font-medium transition-colors duration-300 rounded-xl">

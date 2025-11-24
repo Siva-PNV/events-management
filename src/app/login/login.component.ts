@@ -39,7 +39,8 @@ export class LoginComponent {
       next: (res) => {
         // store minimal session in localStorage for SPA behavior
         localStorage.setItem('is_admin', 'true');
-        localStorage.setItem('admin_username', res.username);
+        localStorage.setItem('admin_role', res.role || 'admin');
+        localStorage.setItem('username', res.username);
         localStorage.setItem('admin_id', String(res.id));
         this.messageType = 'success';
         this.message = 'Login successful. Redirecting...';
