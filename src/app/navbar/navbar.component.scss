@@ -1,0 +1,15 @@
+:host {
+  display: block;
+}
+@media (max-width: 767px) {
+  #nav-links {
+    background: #fff !important;
+    box-shadow:
+      0 10px 40px 0 rgba(80, 0, 120, 0.1),
+      0 2px 4px 0 rgba(80, 0, 120, 0.1);
+    border-top-right-radius: 1.5rem;
+    border-bottom-right-radius: 1.5rem;
+    z-index: 10001;
+    opacity: 1 !important;
+  }
+}
