@@ -15,11 +15,11 @@
     <div *ngIf="!loading && !error && events.length === 0" class="bg-white/90 rounded-3xl shadow-xl p-12 text-center text-gray-400 text-lg font-medium">No past events found.</div>
 
     <div *ngIf="events.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <div *ngFor="let e of events" class="bg-white/95 rounded-3xl shadow-xl border-l-8 border-indigo-200 p-7 group relative overflow-hidden" [style.background-image]="'url(' + bgFor(e.event_title) + ')'" style="background-size:cover;background-position:center;">
+      <div *ngFor="let e of events" class="bg-white/95 rounded-3xl shadow-xl border-l-8 border-indigo-200 p-7 group relative overflow-hidden" [style.background-image]="'url(' + bgFor(e.eventTitle) + ')'" style="background-size:cover;background-position:center;">
         <div class="absolute inset-0 bg-white/80 group-hover:bg-white/60 transition-all duration-300"></div>
         <div class="relative z-10">
-          <h3 class="text-2xl font-extrabold text-indigo-500 mb-4 flex items-center gap-2 group-hover:text-pink-500 transition-colors duration-300"><svg xmlns='http://www.w3.org/2000/svg' class='h-6 w-6 text-indigo-300' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>{{ e.event_title }}</h3>
-          <div class="bg-indigo-50 inline-block px-4 py-1 rounded-full text-sm text-indigo-700 font-semibold mb-4 shadow-sm">{{ e.event_date | date:'MMMM d, y' }}</div>
+          <h3 class="text-2xl font-extrabold text-indigo-500 mb-4 flex items-center gap-2 group-hover:text-pink-500 transition-colors duration-300"><svg xmlns='http://www.w3.org/2000/svg' class='h-6 w-6 text-indigo-300' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>{{ e.eventTitle }}</h3>
+          <div class="bg-indigo-50 inline-block px-4 py-1 rounded-full text-sm text-indigo-700 font-semibold mb-4 shadow-sm">{{ e.eventDate | date:'MMMM d, y' }}</div>
           <div class="text-purple-700 font-medium mb-2 flex items-center gap-2"><svg xmlns='http://www.w3.org/2000/svg' class='h-5 w-5 text-purple-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 11c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm0 2c-2.21 0-4 1.79-4 4 0 2.21 4 7 4 7s4-4.79 4-7c0-2.21-1.79-4-4-4z'/></svg>{{ e.location }}</div>
         </div>
       </div>

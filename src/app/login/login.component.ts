@@ -42,6 +42,7 @@ export class LoginComponent {
         localStorage.setItem('admin_role', res.role || 'admin');
         localStorage.setItem('username', res.username);
         localStorage.setItem('admin_id', String(res.id));
+        localStorage.setItem('token', res.token);
         this.messageType = 'success';
         this.message = 'Login successful. Redirecting...';
         setTimeout(() => this.router.navigateByUrl(this.redirect), 700);

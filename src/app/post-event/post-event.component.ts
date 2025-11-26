@@ -13,8 +13,8 @@ import { NavbarComponent } from '../navbar/navbar.component';
 })
 export class PostEventComponent implements OnInit {
   event: Event = {
-    event_title: '',
-    event_date: '',
+    eventTitle: '',
+    eventDate: '',
     location: '',
     details: '',
   };
@@ -93,7 +93,8 @@ export class PostEventComponent implements OnInit {
       return;
     }
     const payload: Event = { ...this.event };
-      payload.event_date = normalizedDateTime;
+      payload.eventDate = normalizedDateTime;
+      payload.createdAt = now.toISOString().slice(0, 19).replace('T', ' ');
 
 
     console.log('[PostEvent] Submitting payload:', payload);
@@ -123,7 +124,7 @@ export class PostEventComponent implements OnInit {
   }
 
   private resetFormState() {
-    this.event = { event_title: '', event_date: '', location: '', details: '' };
+    this.event = { eventTitle: '', eventDate: '', location: '', details: '' };
     this.editDateISO = '';
     this.editTimeISO = '';
     this.editDisplayDate = '';

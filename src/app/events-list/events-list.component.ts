@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EventService, Event } from '../event.service';
@@ -13,12 +13,12 @@ import { NavbarComponent } from '../navbar/navbar.component';
   templateUrl: './events-list.component.html',
   styleUrls: ['./events-list.component.scss'],
 })
-export class EventsListComponent {
+export class EventsListComponent implements OnInit {
   events$!: Observable<Event[]>;
   selectedEvent: Event | null = null;
   isAdmin = false;
   editSelectedEvent: Event | null = null;
-  editModel: { event_title: string; event_date: string; location: string; details: string } | null = null;
+  editModel: { eventTitle: string; eventDate: string; location: string; details: string } | null = null;
   editDateISO: string = '';
   editTimeISO: string = '';
   editDisplayDate: string = '';
@@ -26,14 +26,29 @@ export class EventsListComponent {
   toastMessage: string = '';
   toastType: 'success' | 'error' | '' = '';
   toastVisible = false;
+    minDate = '';
+  minTime = '';
+    minDateTime = '';
 
   constructor(private eventService: EventService,private changeDetectorRef: ChangeDetectorRef) {
     this.refreshEvents();
     this.isAdmin = localStorage.getItem('is_admin') === 'true';
   }
 
+  ngOnInit() {
+    this.setMinDateTime();
+  }
+
+setMinDateTime() {
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    this.minDateTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    this.minDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    this.minTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }
+
   bgFor(title: string): string {
-    const t = title.toLowerCase();
+    const t =  title.toLowerCase();
     if (t.includes('singing') || t.includes('music')) return 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80';
     if (t.includes('dance')) return 'assets/dance.jpeg';
     if (t.includes('sports')) return 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=600&q=80';
@@ -59,18 +74,18 @@ export class EventsListComponent {
     if (!event) return;
     // Do NOT close detail modal; allow edit modal to stack above
     this.editSelectedEvent = event;
-    const info = this.parseDateTime(event.event_date);
+    const info = this.parseDateTime(event.eventDate);
     this.editDateISO = info.isoDate;
     this.editTimeISO = info.isoTime;
     this.editDisplayDate = info.displayDate;
     this.editDisplayTime = info.displayTime;
     this.editModel = {
-      event_title: event.event_title,
-      event_date: `${info.isoDate} ${info.isoTime}:00`,
+      eventTitle: event.eventTitle,
+      eventDate: `${info.isoDate} ${info.isoTime}:00`,
       location: event.location,
       details: event.details,
     };
-    console.log('Opened edit modal', { id: event.event_id, raw: event.event_date, isoDate: this.editDateISO, isoTime: this.editTimeISO, displayDate: this.editDisplayDate, displayTime: this.editDisplayTime });
+    console.log('Opened edit modal', { id: event.eventId, raw: event.eventDate, isoDate: this.editDateISO, isoTime: this.editTimeISO, displayDate: this.editDisplayDate, displayTime: this.editDisplayTime });
     // Focus will move to edit modal (tabindex on container); ensure change detection
     this.changeDetectorRef.markForCheck();
   }
@@ -94,17 +109,17 @@ export class EventsListComponent {
   }
 
   confirmDelete(event: Event) {
-    if (!event.event_id) return;
+    if (!event.eventId) return;
     const ok = confirm('Are you sure you want to delete this event?');
     if (!ok) return;
-    console.log('Attempting delete for event', event.event_id);
-    this.eventService.deleteEvent(event.event_id).subscribe({
+    console.log('Attempting delete for event', event.eventId);
+    this.eventService.deleteEvent(event.eventId).subscribe({
       next: () => {
-        console.log('Delete success for event', event.event_id);
+        console.log('Delete success for event', event.eventId);
         // Manual fetch to verify network call before assigning observable
         this.eventService.getUpcomingEvents().subscribe({
           next: (events) => {
-            console.log('Manual fetch after delete. Events length:', events.length);
+            console.log('Manual fetch after delete. Events length:', events);
             this.refreshEvents();
             this.changeDetectorRef.detectChanges();
             this.showToast('Event deleted successfully', 'success');
@@ -114,7 +129,7 @@ export class EventsListComponent {
             this.showToast('Failed to refresh after delete', 'error');
           }
         });
-        if (this.selectedEvent && this.selectedEvent.event_id === event.event_id) {
+        if (this.selectedEvent && this.selectedEvent.eventId === event.eventId) {
           this.closeModal();
         }
       },
@@ -132,23 +147,24 @@ export class EventsListComponent {
   }
 
   saveEdit() {
-    if (!this.editSelectedEvent || !this.editSelectedEvent.event_id || !this.editModel) return;
-    const id = this.editSelectedEvent.event_id;
+    if (!this.editSelectedEvent || !this.editSelectedEvent.eventId || !this.editModel) return;
+    const id = this.editSelectedEvent.eventId;
     const normalizedDateTime = `${this.editDateISO} ${this.editTimeISO}:00`;
     const payload: Event = {
-      event_title: this.editModel.event_title.trim(),
-      event_date: normalizedDateTime,
+      eventTitle: this.editModel.eventTitle.trim(),
+      eventDate: normalizedDateTime,
       location: this.editModel.location.trim(),
       details: this.editModel.details.trim(),
+      createdAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
     };
-    if (!payload.event_title || !payload.event_date || !payload.location) {
+    if (!payload.eventTitle || !payload.eventDate || !payload.location) {
       alert('Title, date, and location are required');
       return;
     }
     this.eventService.updateEvent(id, payload).subscribe({
       next: () => {
         console.log('Update success for event', id);
-        if (this.selectedEvent && this.selectedEvent.event_id === id) {
+        if (this.selectedEvent && this.selectedEvent.eventId === id) {
           this.selectedEvent = { ...this.selectedEvent, ...payload };
         }
         this.closeEditModal();
@@ -211,5 +227,30 @@ export class EventsListComponent {
       this.toastType = '';
       this.changeDetectorRef.markForCheck();
     }, 3000);
+  }
+
+   onDateChange(value: string) {
+    this.editDateISO = value;
+    this.editDisplayDate = value ? new Date(value).toLocaleDateString() : '';
+    // if selected date is today, keep minTime as now; otherwise allow any time
+    const today = new Date();
+    const sel = value ? new Date(value) : null;
+    if (sel && sel.getFullYear() === today.getFullYear() && sel.getMonth() === today.getMonth() && sel.getDate() === today.getDate()) {
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      this.minTime = `${pad(today.getHours())}:${pad(today.getMinutes())}`;
+    } else {
+      this.minTime = '00:00';
+    }
+  }
+
+  onTimeChange(value: string) {
+    this.editTimeISO = value;
+    this.editDisplayTime = value || '';
+  }
+
+  isSelectedInPast(): boolean {
+    if (!this.editDateISO || !this.editTimeISO) return false;
+    const selected = new Date(`${this.editDateISO}T${this.editTimeISO}:00`);
+    return selected.getTime() < new Date().getTime();
   }
 }

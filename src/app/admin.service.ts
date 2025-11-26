@@ -1,29 +1,38 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface AdminUser {
   id: number;
   username: string;
   role?: string;
-  created_at?: string;
-  created_by?: string;
+  createdAt?: string;
+  createdBy?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
-  private api = 'http://localhost:3001/api';
+  private api = 'http://localhost:8090/';
   constructor(private http: HttpClient) {}
 
-  listAdmins(): Observable<AdminUser[]> {
-    return this.http.get<AdminUser[]>(`${this.api}/admin/users`);
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    return headers;
   }
 
-  addAdmin(username: string, password: string, role: string = 'admin',loggedinUser:string): Observable<any> {
-    return this.http.post(`${this.api}/admin/users`, { username, password, role,loggedinUser });
+  listAdmins(): Observable<AdminUser[]> {
+    return this.http.get<AdminUser[]>(`${this.api}admin/users`, { headers: this.getAuthHeaders() });
+  }
+
+  addAdmin(username: string, password: string, role: string = 'admin',createdBy:string): Observable<any> {
+    return this.http.post(`${this.api}admin/users`, { username, password, role,createdBy }, { headers: this.getAuthHeaders() });
   }
 
   deleteAdmin(id: number): Observable<any> {
-    return this.http.request('delete', `${this.api}/admin/users`, { body: { id } });
+    return this.http.delete(`${this.api}admin/users?id=${id}`, { headers: this.getAuthHeaders() });
   }
 }
